@@ -106,6 +106,8 @@ static const EnumEntry<codeview::SourceLanguage> SourceLanguages[] = {
     CV_ENUM_ENT(SourceLanguage, HLSL),    CV_ENUM_ENT(SourceLanguage, D),
     CV_ENUM_ENT(SourceLanguage, Swift),   CV_ENUM_ENT(SourceLanguage, Rust),
     CV_ENUM_ENT(SourceLanguage, ObjC),    CV_ENUM_ENT(SourceLanguage, ObjCpp),
+    CV_ENUM_ENT(SourceLanguage, AliasObj), CV_ENUM_ENT(SourceLanguage, Go),
+    {"Swift", SourceLanguage::OldSwift},
 };
 
 static const EnumEntry<uint32_t> CompileSym2FlagNames[] = {
@@ -205,6 +207,7 @@ static const EnumEntry<unsigned> CPUTypeNames[] = {
     CV_ENUM_CLASS_ENT(CPUType, HybridX86ARM64),
     CV_ENUM_CLASS_ENT(CPUType, ARM64EC),
     CV_ENUM_CLASS_ENT(CPUType, ARM64X),
+    CV_ENUM_CLASS_ENT(CPUType, Unknown),
     CV_ENUM_CLASS_ENT(CPUType, D3D11_Shader),
 };
 
