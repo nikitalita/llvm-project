@@ -1,0 +1,105 @@
+name: Build llvm-pdbutils
+on:
+    push:
+    release:
+        types: [created]
+
+# Global Settings
+# SCONS_CACHE for windows must be set in the build environment
+
+concurrency:
+  group: ci-${{github.actor}}-${{github.head_ref || github.run_number}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    # Windows 10 with latest image
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "Windows"
+            os: "windows-latest"
+            platform: windows
+            bin_name: "llvm-pdbutil.exe"
+
+          - name: "🐧 Linux"
+            os: "ubuntu-20.04"
+            platform: linux
+            bin_name: "llvm-pdbutil"
+
+          - name: "🍎 macOS"
+            os: "macos-latest"
+            platform: macos
+            bin_name: "llvm-pdbutil"
+  
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Install Linux deps
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install chrpath gcc-multilib ninja-build
+
+      - name: Install python deps
+        run: |
+          pip install -r ./llvm/utils/git/requirements.txt
+    
+      - name: build llvm-pdbutil
+        shell: pwsh
+        run: |
+          mkdir build
+          cd build
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ../llvm
+          ninja bin/llvm-pdbutil
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: llvm-pdbutils-${{ matrix.platform }}
+          path: ${{github.workspace}}/build/bin/${{ matrix.bin_name }}
+          retention-days: 90
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: "ubuntu-20.04"
+    permissions:
+      contents: write
+    needs: build
+    steps:
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: llvm-pdbutils-linux
+          path: artifacts/linux
+      - name: Download MacOS artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: llvm-pdbutils-macos
+          path: artifacts/macos
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: llvm-pdbutils-windows
+          path: artifacts/windows
+      - name: Zip artifacts
+        run: |
+          ls -la artifacts/*
+          cd artifacts/windows
+          zip -r9  "../llvm-pdbutils-${{ github.ref_name }}-windows.zip" *
+          cd ../..
+          cd artifacts/macos
+          zip -r9 "../llvm-pdbutils-${{ github.ref_name }}-macos.zip" *
+          cd ../..
+          cd artifacts/linux
+          zip -r9  "../llvm-pdbutils-${{ github.ref_name }}-linux.zip" *
+      - name: Release
+        uses: nikitalita/action-gh-release@v1.0
+        with:
+          files: |
+            artifacts/llvm-pdbutils-${{ github.ref_name }}-windows.zip
+            artifacts/llvm-pdbutils-${{ github.ref_name }}-macos.zip
+            artifacts/llvm-pdbutils-${{ github.ref_name }}-linux.zip
