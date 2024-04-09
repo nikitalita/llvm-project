@@ -54,7 +54,10 @@ jobs:
           choco install ninja
           choco install python3
           choco install cmake
-  
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: matrix.platform == 'windows'
+        with:
+          toolset: 14.XX
       - name: Install python deps
         run: |
           pip install -r ./llvm/utils/git/requirements.txt
