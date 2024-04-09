@@ -68,7 +68,7 @@ jobs:
           mkdir build
           cd build
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ../llvm
-          ninja bin/llvm-pdbutil
+          ninja bin/${{ matrix.bin_name }}
 
       - uses: actions/upload-artifact@v3
         with:
