@@ -44,7 +44,17 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install chrpath gcc-multilib ninja-build
-
+      - name: Install MacOS deps
+        if: matrix.platform == 'macos'
+        run: |
+          brew install ninja
+      - name: Install Windows deps
+        if: matrix.platform == 'windows'
+        run: |
+          choco install ninja
+          choco install python3
+          choco install cmake
+  
       - name: Install python deps
         run: |
           pip install -r ./llvm/utils/git/requirements.txt
